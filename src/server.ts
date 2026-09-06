@@ -1,16 +1,22 @@
-import express from "express";
+import app from "./app.js";
+import pool from "./config/db.js";
 
-const app = express();
-const PORT: number = 3000;
+const PORT: number = Number(process.env.PORT) || 3000;
 
-app.use(express.json());
+async function startServer() {
+    try {
+        await pool.query("SELECT 1");
 
-app.get("/", (req, res) => {
-    res.status(200).json({
-        message: "Development Platforms API is running",
-    });
-});
+        console.log("Connected to MySQL");
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+        app.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+        });
+    } catch (error) {
+        console.error("Failed to connect to MySQL:", error);
+        process.exit(1);
+    }
+}
+
+startServer();
+
