@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import pool from "../config/db.js";
 import { RowDataPacket } from "mysql2";
+import jwt from "jsonwebtoken";
 
 
 export async function registerUser(req: Request, res: Response) {
@@ -95,8 +96,21 @@ export async function loginUser(req: Request, res: Response) {
             });
         }
 
+        const jwtSecret = process.env.JWT_SECRET;
+
+        if (!jwtSecret) {
+            throw new Error("JWT_SECRET is not defined");
+        }
+
+        const token = jwt.sign(
+            { userId: user.id },
+            jwtSecret,
+            { expiresIn: "1h" }
+        );
+
         return res.status(200).json({
             message: "Login successful",
+            token,
         });
     } catch (error) {
         console.error(error);

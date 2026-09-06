@@ -1,5 +1,7 @@
 import express from "express";
 import authRoutes from "./routes/authRoutes.js";
+import articleRoutes from "./routes/articleRoutes.js";
+import { errorHandler } from "./middleware/errorMiddleware.js";
 
 const app = express();
 
@@ -12,5 +14,14 @@ app.get("/", (req, res) => {
 });
 
 app.use("/auth", authRoutes);
+app.use("/articles", articleRoutes);
+
+app.use((req, res) => {
+    res.status(404).json({
+        message: "Route not found",
+    });
+});
+
+app.use(errorHandler);
 
 export default app;
