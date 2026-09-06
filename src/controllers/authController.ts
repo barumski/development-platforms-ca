@@ -8,23 +8,36 @@ import jwt from "jsonwebtoken";
 export async function registerUser(req: Request, res: Response) {
     const { email, password } = req.body;
 
-    if (!email || !password) {
+    if (
+        typeof email !== "string" ||
+        typeof password !== "string" ||
+        !email.trim() ||
+        !password
+    ) {
         return res.status(400).json({
             message: "Email and password are required",
         });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (normalizedEmail.length > 255) {
+        return res.status(400).json({
+            message: "Email must be 255 characters or less"
+        });
+    }
+
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!emailPattern.test(email)) {
+    if (!emailPattern.test(normalizedEmail)) {
         return res.status(400).json({
             message: "Please provide a valid email address",
         });
     }
 
-    if (password.length < 8) {
+    if (password.length > 128) {
         return res.status(400).json({
-            message: "Password must be at least 8 characters long",
+            message: "Password must be 128 characters or less",
         });
     }
 
@@ -33,7 +46,7 @@ export async function registerUser(req: Request, res: Response) {
 
         await pool.execute(
             "INSERT INTO users (email, password_hash) VALUES (?, ?)",
-            [email, passwordHash]
+            [normalizedEmail, passwordHash]
         );
 
         return res.status(201).json({
@@ -65,16 +78,23 @@ interface UserRow extends RowDataPacket {
 export async function loginUser(req: Request, res: Response) {
     const { email, password } = req.body;
     
-    if (!email || !password) {
+    if (
+        typeof email !== "string" ||
+        typeof password !== "string" ||
+        !email.trim() ||
+        !password
+    ) {
         return res.status(400).json({
             message: "Email and password are required",
         });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     try {
         const [rows] = await pool.execute<UserRow[]>(
             "SELECT id, email, password_hash FROM users WHERE email = ?",
-            [email]
+            [normalizedEmail]
         );
 
         if (rows.length === 0) {
