@@ -215,3 +215,14 @@ Example:
 {
     "message": "Invalid email or password"
 }
+
+
+
+## Security 
+
+- Passwords are hashed with bcrypt before being stored in the database.
+- Authentication is handled using JSON Web Tokens (JWT).
+- Protected routes require a valid JWT using the Bearer authentication scheme.
+- The authenticated user ID is retrieved from the verified JWT rather than from client input.
+- SQL queries use parameterized values to reduce the risk of SQL injection.
+- Sensitive configuration such as database passwords and JWT secrets is stored in environment variables and excluded from Git.
